@@ -1,20 +1,17 @@
-import userRepository from '../repositories/userRepository';
+import { IUserRepository } from '../interfaces/IUserRepository';
+import { IUserService, UserUpdateData } from '../interfaces/IUserService';
 import { User, UserCreationAttributes } from '../models/User';
+import { CreateUserDTO, UpdateUserDTO } from '../dtos/UserDTOs';
 
-interface UserUpdateData {
-  nom?: string;
-  prenom?: string;
-  email?: string;
-  telephone?: string;
-}
+class UserService implements IUserService {
+  constructor(private userRepository: IUserRepository) {}
 
-class UserService {
   assignProfile(email: string): 'Administrateur' | 'Utilisateur standard' {
     return email.endsWith('@company.com') ? 'Administrateur' : 'Utilisateur standard';
   }
 
   async createUser(userData: UserCreationAttributes): Promise<User> {
-    const existingUser = await userRepository.findByEmail(userData.email);
+    const existingUser = await this.userRepository.findByEmail(userData.email);
     if (existingUser) {
       throw new Error('Un utilisateur avec cet email existe déjà');
     }
@@ -26,15 +23,15 @@ class UserService {
       profil
     };
 
-    return await userRepository.create(userToCreate);
+    return await this.userRepository.create(userToCreate);
   }
 
   async getAllUsers(): Promise<User[]> {
-    return await userRepository.findAll();
+    return await this.userRepository.findAll();
   }
 
   async getUserById(id: number): Promise<User> {
-    const user = await userRepository.findById(id);
+    const user = await this.userRepository.findById(id);
     if (!user) {
       throw new Error('Utilisateur non trouvé');
     }
@@ -42,7 +39,7 @@ class UserService {
   }
 
   async updateUser(id: number, userData: UserUpdateData): Promise<User | null> {
-    const existingUser = await userRepository.findById(id);
+    const existingUser = await this.userRepository.findById(id);
     if (!existingUser) {
       throw new Error('Utilisateur non trouvé');
     }
@@ -50,24 +47,24 @@ class UserService {
     const updateData: Partial<UserCreationAttributes> = { ...userData };
 
     if (userData.email && userData.email !== existingUser.email) {
-      const emailExists = await userRepository.findByEmail(userData.email);
+      const emailExists = await this.userRepository.findByEmail(userData.email);
       if (emailExists) {
         throw new Error('Un utilisateur avec cet email existe déjà');
       }
       updateData.profil = this.assignProfile(userData.email);
     }
 
-    return await userRepository.update(id, updateData);
+    return await this.userRepository.update(id, updateData);
   }
 
   async deleteUser(id: number): Promise<boolean> {
-    const existingUser = await userRepository.findById(id);
+    const existingUser = await this.userRepository.findById(id);
     if (!existingUser) {
       throw new Error('Utilisateur non trouvé');
     }
 
-    return await userRepository.delete(id);
+    return await this.userRepository.delete(id);
   }
 }
 
-export default new UserService();
+export default UserService;

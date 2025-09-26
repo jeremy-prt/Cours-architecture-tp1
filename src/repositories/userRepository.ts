@@ -1,6 +1,7 @@
-import { User, UserAttributes, UserCreationAttributes } from '../models/User';
+import { User, UserCreationAttributes } from '../models/User';
+import { IUserRepository } from '../interfaces/IUserRepository';
 
-class UserRepository {
+class UserRepository implements IUserRepository {
   async create(userData: UserCreationAttributes): Promise<User> {
     return await User.create(userData);
   }
@@ -39,4 +40,4 @@ class UserRepository {
   }
 }
 
-export default new UserRepository();
+export default UserRepository;

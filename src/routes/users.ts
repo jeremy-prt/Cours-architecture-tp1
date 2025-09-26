@@ -1,14 +1,31 @@
 import express, { Request, Response } from 'express';
-import userService from '../services/userService';
+import { IUserService } from '../interfaces/IUserService';
+import { container } from '../di/container';
 import { syncDatabase } from '../models';
+import { CreateUserDTO, UpdateUserDTO, UserResponseDTO } from '../dtos/UserDTOs';
+import { User } from '../models/User';
 
 const router = express.Router();
+const userService = container.get<IUserService>('IUserService');
 
 syncDatabase();
 
+// Helper function to convert User entity to UserResponseDTO
+const toUserResponseDTO = (user: User): UserResponseDTO => ({
+  id: user.id,
+  nom: user.nom,
+  prenom: user.prenom,
+  email: user.email,
+  telephone: user.telephone,
+  profil: user.profil,
+  createdAt: user.createdAt,
+  updatedAt: user.updatedAt
+});
+
 router.post('/users', async (req: Request, res: Response) => {
   try {
-    const { nom, prenom, email, telephone } = req.body;
+    const createUserDTO: CreateUserDTO = req.body;
+    const { nom, prenom, email, telephone } = createUserDTO;
     
     if (!nom || !prenom || !email || !telephone) {
       return res.status(400).json({
@@ -21,7 +38,7 @@ router.post('/users', async (req: Request, res: Response) => {
     
     res.status(201).json({
       success: true,
-      data: user
+      data: toUserResponseDTO(user)
     });
   } catch (error: any) {
     res.status(400).json({
@@ -31,13 +48,13 @@ router.post('/users', async (req: Request, res: Response) => {
   }
 });
 
-router.get('/users', async (req: Request, res: Response) => {
+router.get('/users', async (_req: Request, res: Response) => {
   try {
     const users = await userService.getAllUsers();
     
     res.json({
       success: true,
-      data: users
+      data: users.map(toUserResponseDTO)
     });
   } catch (error: any) {
     res.status(500).json({
@@ -54,7 +71,7 @@ router.get('/users/:id', async (req: Request, res: Response) => {
     
     res.json({
       success: true,
-      data: user
+      data: toUserResponseDTO(user)
     });
   } catch (error: any) {
     res.status(404).json({
@@ -67,13 +84,20 @@ router.get('/users/:id', async (req: Request, res: Response) => {
 router.put('/users/:id', async (req: Request, res: Response) => {
   try {
     const { id } = req.params;
-    const { nom, prenom, email, telephone } = req.body;
+    const updateUserDTO: UpdateUserDTO = req.body;
     
-    const updatedUser = await userService.updateUser(parseInt(id), { nom, prenom, email, telephone });
+    const updatedUser = await userService.updateUser(parseInt(id), updateUserDTO);
+    
+    if (!updatedUser) {
+      return res.status(404).json({
+        success: false,
+        message: 'Utilisateur non trouvé'
+      });
+    }
     
     res.json({
       success: true,
-      data: updatedUser
+      data: toUserResponseDTO(updatedUser)
     });
   } catch (error: any) {
     res.status(400).json({
