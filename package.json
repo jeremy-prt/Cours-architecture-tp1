@@ -11,6 +11,7 @@
     "start": "node dist/index.js",
     "dev": "ts-node src/index.ts",
     "dev:clean": "ts-node src/cleanIndex.ts",
+    "dev:cqrs": "ts-node src/cqrsIndex.ts",
     "test": "jest",
     "test:domain": "jest src/domain"
   },

@@ -1,15 +1,21 @@
-# TP1 - Architecture Clean Architecture
+# TP1 - Architecture CQRS
 
 ## Installation et lancement
 
-### Architecture Clean (recommandé)
+### Architecture CQRS (actuel)
 
 ```bash
 npm install
+npm run dev:cqrs
+```
+
+### Architecture Clean (v2)
+
+```bash
 npm run dev:clean
 ```
 
-### Architecture N-Layer (legacy)
+### Architecture N-Layer (v1)
 
 ```bash
 npm run dev
@@ -19,9 +25,13 @@ npm run dev
 
 Configurer `.env` avec vos paramètres de base de données (voir `.env.example`)
 
-## Architecture Clean Architecture
+## Architecture CQRS
 
-### Structure hexagonale en 5 couches :
+### Pattern CQRS (Command Query Responsibility Segregation)
+
+**CQRS** sépare strictement les opérations de **lecture** (Queries) et d'**écriture** (Commands) dans la couche Application, avec un système de **MediatR** pour router les requêtes.
+
+### Structure CQRS :
 
 1. **Domain** (`src/domain/`) - Cœur métier isolé
 
@@ -29,34 +39,44 @@ Configurer `.env` avec vos paramètres de base de données (voir `.env.example`)
    - `valueobjects/` - Objets valeur immutables (Email, UserId, UserProfile)
    - `services/` - Services domaine (règles métier)
 
-2. **Application** (`src/application/`) - Orchestration cas d'usage
+2. **Application** (`src/application/`) - **Séparation CQRS**
 
-   - `usecases/` - Cas d'usage métier (CreateUser, GetUser...)
-   - `ports/` - Interfaces (IUserRepository)
+   - **`commands/`** - Commands pour les écritures (Create, Update, Delete)
+   - **`queries/`** - Queries pour les lectures (GetById, GetAll)
+   - **`handlers/`** - Handlers pour traiter Commands/Queries
+   - **`requests/`** - Request objects CQRS
+   - **`mediator/`** - Pattern MediatR pour routing
    - `dtos/` - Objets transfert données
    - `mappers/` - Mapping Domain ↔ DTOs
+   - `ports/` - Interfaces (IUserRepository)
 
 3. **Infrastructure** (`src/infrastructure/`) - Détails techniques
 
    - `persistence/` - Implémentation repository (Sequelize)
-   - `di/` - Conteneur injection dépendances
+   - `di/` - Conteneur injection dépendances CQRS
 
 4. **Presentation** (`src/presentation/`) - Interface utilisateur
 
-   - `controllers/` - Contrôleurs REST
+   - `controllers/` - Contrôleurs utilisant MediatR
    - `routes/` - Routes Express
-   - `middlewares/` - Middlewares HTTP
 
 5. **Models** (`src/models/`) - Modèles ORM Sequelize
 
-### Principes respectés :
+### Principes CQRS respectés :
 
-- **Dependency Inversion** : Dependencies pointent vers le domaine
+- **Séparation Commands/Queries** : Écritures et lectures distinctes
+- **MediatR Pattern** : Routage centralisé des requêtes
+- **Single Responsibility** : Chaque handler a une seule responsabilité
 - **Domain Isolation** : Domaine sans dépendances externes
-- **Use Cases** : Orchestration logique applicative
-- **Repository Pattern** : Abstraction persistance
-- **Value Objects** : Objets métier immutables
-- **Domain Services** : Règles métier complexes
+- **Request/Response Pattern** : Communication via objets typés
+
+### Bénéfices CQRS observés :
+
+- **Clarté architecturale** : Séparation nette lecture/écriture
+- **Scalabilité** : Possibilité d'optimiser séparément Commands et Queries
+- **Maintenabilité** : Handlers découplés et testables unitairement
+- **Extensibilité** : Ajout facile de nouveaux Commands/Queries
+- **Performance** : Optimisations spécialisées par type d'opération
 
 ## API Endpoints
 
@@ -69,5 +89,6 @@ Configurer `.env` avec vos paramètres de base de données (voir `.env.example`)
 ## Règle métier
 
 Profil utilisateur assigné automatiquement :
+
 - Email `@company.com` → Administrateur
 - Autres domaines → Utilisateur standard
