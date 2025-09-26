@@ -1,9 +1,7 @@
-// Simple Dependency Injection Container
-
-import { IUserService } from '../interfaces/IUserService';
-import { IUserRepository } from '../interfaces/IUserRepository';
-import UserService from '../services/userService';
-import UserRepository from '../repositories/userRepository';
+import { IUserService } from "../interfaces/IUserService";
+import { IUserRepository } from "../interfaces/IUserRepository";
+import UserService from "../services/userService";
+import UserRepository from "../repositories/userRepository";
 
 class DIContainer {
   private services = new Map<string, any>();
@@ -15,11 +13,11 @@ class DIContainer {
   private registerServices(): void {
     // Register Repository
     const userRepository: IUserRepository = new UserRepository();
-    this.services.set('IUserRepository', userRepository);
+    this.services.set("IUserRepository", userRepository);
 
     // Register Service with dependency injection
     const userService: IUserService = new UserService(userRepository);
-    this.services.set('IUserService', userService);
+    this.services.set("IUserService", userService);
   }
 
   get<T>(serviceName: string): T {
