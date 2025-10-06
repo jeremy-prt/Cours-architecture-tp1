@@ -25,4 +25,6 @@ Thumbs.db
 logs/
 *.log
 
-*.md
+
+# TP Instructions
+Instructions.md
